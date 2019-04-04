@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: data-generator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: data-generator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-generator
+  template:
+    metadata:
+      labels:
+        app: data-generator
+    spec:
+      containers:
+      - name: data-generator
+        image: {{ .Values.image.name }}:{{ .Values.image.tag }}
+        imagePullPolicy: IfNotPresent
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        env:
+          - name: REDIS_HOST
+            value: {{ .Values.redis.host }}
