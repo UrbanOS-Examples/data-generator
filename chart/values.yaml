@@ -1,0 +1,20 @@
+service:
+  name: data-generator
+  port: 80
+  auth_string: ""
+
+image:
+  name: 199837183662.dkr.ecr.us-east-2.amazonaws.com/scos/data-generator
+  tag: latest
+
+monitoring:
+  targetPort: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+redis:
+  host: redis.external-services
