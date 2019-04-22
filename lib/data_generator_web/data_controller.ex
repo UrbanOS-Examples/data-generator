@@ -29,18 +29,22 @@ defmodule DataGeneratorWeb.DataController do
          data,
          params
        ) do
-    header = Enum.map(schema, fn %{name: name} -> name end)
-    csv_data = Enum.map(data, fn map -> Enum.map(map, fn {key, value} -> value end) end)
+    header_row = Enum.map(schema, fn %{name: name} -> name end)
+    csv_rows = Enum.map(data, &sort_record_to_schema_order(&1, schema))
 
     csv =
       case Map.get(params, "include_header", "false") == "true" do
-        true -> CSV.encode([header] ++ csv_data)
-        false -> CSV.encode(csv_data)
+        true -> CSV.encode([header_row] ++ csv_rows)
+        false -> CSV.encode(csv_rows)
       end
       |> Enum.map(fn x -> x end)
 
     conn
     |> put_resp_content_type(MIME.type("csv"))
     |> text(csv)
+  end
+
+  defp sort_record_to_schema_order(record, schema) do
+    Enum.map(schema, fn %{name: name} -> Map.get(record, name) end)
   end
 end
