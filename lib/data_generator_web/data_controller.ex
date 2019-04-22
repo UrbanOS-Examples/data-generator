@@ -43,5 +43,4 @@ defmodule DataGeneratorWeb.DataController do
     |> put_resp_content_type(MIME.type("csv"))
     |> text(csv)
   end
-
 end

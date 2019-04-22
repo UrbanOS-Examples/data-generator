@@ -27,9 +27,8 @@ defmodule DataGenerator.DataRecord do
   defp generate_value(%{type: "int"}), do: Faker.random_between(0, 100_000)
   defp generate_value(%{type: "long"}), do: Faker.random_between(0, 100_000)
   defp generate_value(%{type: "date"}), do: DateTime.utc_now() |> Date.to_iso8601()
-  defp generate_value(%{type: "timestamp"}), do: DateTime.utc_now |> DateTime.to_iso8601()
+  defp generate_value(%{type: "timestamp"}), do: DateTime.utc_now() |> DateTime.to_iso8601()
   defp generate_value(%{type: "float"}), do: Faker.random_uniform()
   defp generate_value(%{type: "double"}), do: Faker.random_uniform()
   defp generate_value(%{type: "boolean"}), do: true
-
 end
