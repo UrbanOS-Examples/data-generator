@@ -9,7 +9,7 @@ defmodule DataGeneratorWeb.DataController do
 
     data =
       Stream.repeatedly(fn -> DataRecord.generate(dataset.technical.schema) end)
-      |> Enum.take(String.to_integer(count))
+      |> Stream.take(String.to_integer(count))
 
     generate_response(conn, dataset, data, params)
   end
@@ -20,7 +20,14 @@ defmodule DataGeneratorWeb.DataController do
          data,
          _params
        ) do
-    json(conn, data)
+    json_data =
+      data
+      |> Stream.map(fn entry -> Jason.encode!(entry) end)
+      |> Stream.intersperse(",")
+
+    conn
+    |> put_resp_content_type(MIME.type("json"))
+    |> stream_data(Stream.concat([["["], json_data, ["]"]]))
   end
 
   defp generate_response(
@@ -30,18 +37,28 @@ defmodule DataGeneratorWeb.DataController do
          params
        ) do
     header_row = Enum.map(schema, fn %{name: name} -> name end)
-    csv_rows = Enum.map(data, &sort_record_to_schema_order(&1, schema))
+    csv_rows = Stream.map(data, &sort_record_to_schema_order(&1, schema))
 
     csv =
       case Map.get(params, "include_header", "false") == "true" do
-        true -> CSV.encode([header_row] ++ csv_rows)
+        true -> CSV.encode(Stream.concat([header_row], csv_rows))
         false -> CSV.encode(csv_rows)
       end
-      |> Enum.map(fn x -> x end)
 
     conn
     |> put_resp_content_type(MIME.type("csv"))
-    |> text(csv)
+    |> stream_data(csv)
+  end
+
+  defp stream_data(conn, stream) do
+    conn = send_chunked(conn, 200)
+
+    Enum.reduce_while(stream, conn, fn chunk, conn ->
+      case chunk(conn, chunk) do
+        {:ok, conn} -> {:cont, conn}
+        {:error, :closed} -> {:halt, conn}
+      end
+    end)
   end
 
   defp sort_record_to_schema_order(record, schema) do
