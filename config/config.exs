@@ -24,7 +24,7 @@ config :phoenix, :json_library, Jason
 
 config :smart_city_registry,
   redis: [
-    host: System.get_env("REDIS_HOST") || "redis"
+    host: System.get_env("REDIS_HOST") || "localhost"
   ]
 
 # Import environment specific config. This must remain at the bottom
