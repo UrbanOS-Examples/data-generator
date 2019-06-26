@@ -16,7 +16,7 @@ config :data_generator, DataGeneratorWeb.Endpoint,
 
 # Configures Elixir's Logger
 config :logger, :console,
-  format: "$time $metadata[$level] $message\n",
+  format: "$date $time $metadata[$level] $message\n",
   metadata: [:request_id]
 
 # Use Jason for JSON parsing in Phoenix
@@ -24,7 +24,7 @@ config :phoenix, :json_library, Jason
 
 config :smart_city_registry,
   redis: [
-    host: "localhost"
+    host: System.get_env("REDIS_HOST") || "localhost"
   ]
 
 # Import environment specific config. This must remain at the bottom
