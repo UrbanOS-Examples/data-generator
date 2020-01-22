@@ -37,13 +37,10 @@ defmodule DataGenerator.MixProject do
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:smart_city, "~> 2.1.4"},
-      {:smart_city_registry, "~> 3.2.0"},
-      {:smart_city_data, "~> 2.1.6"},
-      {:smart_city_test, "~> 0.3.0"},
       {:csv, "~> 2.3"},
       {:distillery, "~> 2.0"},
-      {:credo, "~> 1.0"}
+      {:credo, "~> 1.0"},
+      {:faker, " ~> 0.12.0"}
     ]
   end
 end

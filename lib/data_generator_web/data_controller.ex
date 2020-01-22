@@ -1,25 +1,26 @@
 defmodule DataGeneratorWeb.DataController do
   use DataGeneratorWeb, :controller
 
-  alias SmartCity.Dataset
   alias DataGenerator.DataRecord
 
-  def generate(conn, %{"dataset_id" => dataset_id, "count" => count} = params) do
-    dataset = Dataset.get!(dataset_id)
+  def generate(conn, %{"format" => format, "schema" => schema_string, "count" => count} = params) do
+    schema = decode_schema(schema_string)
 
     data =
-      Stream.repeatedly(fn -> DataRecord.generate(dataset.technical.schema) end)
+      Stream.repeatedly(fn -> DataRecord.generate(schema) end)
       |> Stream.take(String.to_integer(count))
 
-    generate_response(conn, dataset, data, params)
+    generate_response(conn, format, schema, data, params)
   end
 
-  defp generate_response(
-         conn,
-         %SmartCity.Dataset{technical: %{sourceFormat: "json"}},
-         data,
-         _params
-       ) do
+  defp decode_schema(schema_string) do
+    case Jason.decode(schema_string, keys: :atoms) do
+      {:ok, schema} -> schema
+      error -> raise "Invalid schema: #{inspect(schema_string)} : #{inspect(error)}"
+    end
+  end
+
+  defp generate_response(conn, "json", _schema, data, _params) do
     json_data =
       data
       |> Stream.map(fn entry -> Jason.encode!(entry) end)
@@ -30,12 +31,7 @@ defmodule DataGeneratorWeb.DataController do
     |> stream_data(Stream.concat([["["], json_data, ["]"]]))
   end
 
-  defp generate_response(
-         conn,
-         %SmartCity.Dataset{technical: %{sourceFormat: "csv", schema: schema}},
-         data,
-         params
-       ) do
+  defp generate_response(conn, "csv", schema, data, params) do
     header_row = Enum.map(schema, fn %{name: name} -> name end)
     csv_rows = Stream.map(data, &sort_record_to_schema_order(&1, schema))
 
@@ -49,6 +45,8 @@ defmodule DataGeneratorWeb.DataController do
     |> put_resp_content_type(MIME.type("csv"))
     |> stream_data(csv)
   end
+
+  defp generate_response(_, format, _, _, _), do: raise("Invalid format: #{format}")
 
   defp stream_data(conn, stream) do
     conn = send_chunked(conn, 200)
