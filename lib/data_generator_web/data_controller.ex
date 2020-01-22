@@ -4,7 +4,7 @@ defmodule DataGeneratorWeb.DataController do
   alias DataGenerator.DataRecord
 
   def generate(conn, %{"format" => format, "schema" => schema_string, "count" => count} = params) do
-    schema = decode_schema(schema_string) # |> IO.inspect(label: "schema")
+    schema = decode_schema(schema_string)
 
     data =
       Stream.repeatedly(fn -> DataRecord.generate(schema) end)
@@ -20,13 +20,7 @@ defmodule DataGeneratorWeb.DataController do
     end
   end
 
-  defp generate_response(
-         conn,
-         "json",
-         _schema,
-         data,
-         _params
-       ) do
+  defp generate_response(conn, "json", _schema, data, _params) do
     json_data =
       data
       |> Stream.map(fn entry -> Jason.encode!(entry) end)
@@ -37,13 +31,7 @@ defmodule DataGeneratorWeb.DataController do
     |> stream_data(Stream.concat([["["], json_data, ["]"]]))
   end
 
-  defp generate_response(
-         conn,
-         "csv",
-         schema,
-         data,
-         params
-       ) do
+  defp generate_response(conn, "csv", schema, data, params) do
     header_row = Enum.map(schema, fn %{name: name} -> name end)
     csv_rows = Stream.map(data, &sort_record_to_schema_order(&1, schema))
 
@@ -58,7 +46,7 @@ defmodule DataGeneratorWeb.DataController do
     |> stream_data(csv)
   end
 
-  defp generate_response(_, format, _, _, _), do: raise "Invalid format: #{format}"
+  defp generate_response(_, format, _, _, _), do: raise("Invalid format: #{format}")
 
   defp stream_data(conn, stream) do
     conn = send_chunked(conn, 200)
