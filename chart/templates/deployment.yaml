@@ -21,6 +21,3 @@ spec:
         imagePullPolicy: IfNotPresent
         resources:
 {{ toYaml .Values.resources | indent 10 }}
-        env:
-          - name: REDIS_HOST
-            value: {{ .Values.redis.host }}
