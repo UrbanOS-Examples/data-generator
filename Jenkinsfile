@@ -53,8 +53,6 @@ node ('infrastructure') {
 def deployTo(environment, imageTag) {
     scos.withEksCredentials(environment) {
         sh("""#!/bin/bash
-            set -e
-            helm init --client-only
             helm upgrade --install data-generator ./chart \
                 --namespace=testing \
                 --set image.tag="${imageTag}" \
